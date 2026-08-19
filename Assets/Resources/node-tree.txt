@@ -1,0 +1,10 @@
+# 공유 노드 트리 (프로토타입용 임시 데이터, 밸런스 미확정)
+# id,이름,포인트비용,선행조건(|로 구분, 없으면 -),해금건물id
+farm,농장,1,-,farm
+lumber_mill,제재소,1,-,lumber_mill
+mill,제분소,2,farm,mill
+barracks,병영,2,farm,barracks
+sawpit,목재소,2,lumber_mill,sawpit
+walls,성벽,3,farm|lumber_mill,walls
+market,시장,3,mill|barracks,market
+grand_hall,대회당,4,walls|market,grand_hall

@@ -5,8 +5,8 @@ namespace NationBuilder.Core
 {
     /// <summary>
     /// Accumulates gold in real time while the app is running.
-    /// Offline progress (accumulating while the app is closed) is intentionally
-    /// not implemented yet - that is a later increment.
+    /// Offline progress is computed by GameBootstrap/SaveSystem on load,
+    /// which calls SetGold() once it has added the offline amount.
     /// </summary>
     public class ResourceManager : MonoBehaviour
     {
@@ -16,6 +16,7 @@ namespace NationBuilder.Core
         [SerializeField] private double startingGold = 0.0;
 
         public double Gold { get; private set; }
+        public double GoldPerSecond => goldPerSecond;
 
         public event Action<double> OnGoldChanged;
 
@@ -49,6 +50,19 @@ namespace NationBuilder.Core
             Gold -= amount;
             OnGoldChanged?.Invoke(Gold);
             return true;
+        }
+
+        /// <summary>Used by SaveSystem to restore a saved amount (including offline earnings).</summary>
+        public void SetGold(double amount)
+        {
+            Gold = amount;
+            OnGoldChanged?.Invoke(Gold);
+        }
+
+        /// <summary>Used by milestone choices that specialize the nation toward economy.</summary>
+        public void MultiplyGoldRate(double factor)
+        {
+            goldPerSecond *= factor;
         }
     }
 }
