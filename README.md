@@ -9,7 +9,7 @@
 
 ## Unity 에디터에서 확인하는 방법
 
-1. Unity Hub에서 이 폴더(`nation-builder`)를 프로젝트로 열기. (`ProjectSettings/ProjectVersion.txt`에 2022.3 LTS로 지정해뒀지만, 설치된 다른 버전으로 열어도 무방함 — Unity가 알아서 업그레이드를 제안함)
+1. Unity Hub에서 이 폴더(`nation-builder`)를 프로젝트로 열기. (`ProjectSettings/ProjectVersion.txt`에 Unity 6.3 LTS(6000.3.22f1)로 지정해뒀지만, 설치된 다른 버전으로 열어도 무방함 — Unity가 알아서 업그레이드를 제안함)
 2. `Assets/Scenes` 폴더에 새 씬(`Main`)을 생성.
 3. 빈 GameObject를 만들고 이름을 `GameManager`로 지정, `ResourceManager` 컴포넌트를 추가.
 4. UI > Text - TextMeshPro로 텍스트 오브젝트 생성 (처음 추가 시 TMP Essentials 임포트 팝업이 뜨면 Import 클릭).
