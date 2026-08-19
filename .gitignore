@@ -44,3 +44,6 @@ crashlytics-build.properties
 .vscode/
 
 *.DS_Store
+
+# 비공개 기획 노트 - 공개 저장소에 절대 올리지 않음
+/private-notes/
