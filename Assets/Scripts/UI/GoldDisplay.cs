@@ -20,11 +20,24 @@ namespace NationBuilder.UI
 
         private void OnEnable()
         {
-            if (ResourceManager.Instance != null)
-            {
-                ResourceManager.Instance.OnGoldChanged += HandleGoldChanged;
-                HandleGoldChanged(ResourceManager.Instance.Gold);
-            }
+            Subscribe();
+        }
+
+        private void Start()
+        {
+            // OnEnable can run before ResourceManager.Awake() sets Instance
+            // (execution order between different GameObjects isn't guaranteed).
+            // Start() is guaranteed to run after every Awake() in the scene,
+            // so retry here in case the OnEnable subscribe attempt was a no-op.
+            Subscribe();
+        }
+
+        private void Subscribe()
+        {
+            if (ResourceManager.Instance == null) return;
+            ResourceManager.Instance.OnGoldChanged -= HandleGoldChanged;
+            ResourceManager.Instance.OnGoldChanged += HandleGoldChanged;
+            HandleGoldChanged(ResourceManager.Instance.Gold);
         }
 
         private void OnDisable()
