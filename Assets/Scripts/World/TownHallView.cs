@@ -1,0 +1,64 @@
+using UnityEngine;
+using NationBuilder.Core;
+
+namespace NationBuilder.World
+{
+    /// <summary>
+    /// Code-only placeholder for the town hall (capital) at the center of town, so
+    /// there's an obvious focal point instead of an empty scene with a handful of
+    /// building cubes scattered in it. Built from primitives - works immediately,
+    /// no Editor step or external model needed. Grows a little each town hall
+    /// level as a cheap progress cue. Swap for a real model once art is settled.
+    /// </summary>
+    public class TownHallView : MonoBehaviour
+    {
+        private static readonly Color BaseColor = new(0.5f, 0.5f, 0.52f);
+        private static readonly Color WallColor = new(0.78f, 0.72f, 0.6f);
+        private static readonly Color RoofColor = new(0.55f, 0.2f, 0.18f);
+        private static readonly Color BeaconColor = new(1f, 0.85f, 0.35f);
+
+        private TownHallManager _townHall;
+
+        public void Init(TownHallManager townHall)
+        {
+            _townHall = townHall;
+            Build();
+            townHall.OnLevelUp += _ => ApplyScale();
+        }
+
+        private void Build()
+        {
+            CreatePart(PrimitiveType.Cube, "TownHall_Base",
+                new Vector3(0f, 0.15f, 0f), Quaternion.identity, new Vector3(3.2f, 0.3f, 3.2f), BaseColor);
+
+            CreatePart(PrimitiveType.Cube, "TownHall_Body",
+                new Vector3(0f, 1.1f, 0f), Quaternion.identity, new Vector3(2.4f, 1.8f, 2.4f), WallColor);
+
+            CreatePart(PrimitiveType.Cube, "TownHall_Roof",
+                new Vector3(0f, 2.35f, 0f), Quaternion.Euler(0f, 45f, 0f), new Vector3(1.9f, 0.6f, 1.9f), RoofColor);
+
+            CreatePart(PrimitiveType.Cylinder, "TownHall_Beacon",
+                new Vector3(0f, 3.1f, 0f), Quaternion.identity, new Vector3(0.15f, 0.4f, 0.15f), BeaconColor);
+
+            ApplyScale();
+        }
+
+        private void CreatePart(PrimitiveType primitive, string name, Vector3 localPosition,
+            Quaternion localRotation, Vector3 localScale, Color color)
+        {
+            GameObject part = GameObject.CreatePrimitive(primitive);
+            part.name = name;
+            part.transform.SetParent(transform, false);
+            part.transform.localPosition = localPosition;
+            part.transform.localRotation = localRotation;
+            part.transform.localScale = localScale;
+            part.GetComponent<Renderer>().material.color = color;
+        }
+
+        private void ApplyScale()
+        {
+            float growth = 1f + Mathf.Clamp(_townHall.Level - 1, 0, 10) * 0.05f;
+            transform.localScale = Vector3.one * growth;
+        }
+    }
+}

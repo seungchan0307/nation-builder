@@ -16,6 +16,10 @@ namespace NationBuilder.World
         private const float GridSpacing = 4f;
         private const int GridColumns = 5;
 
+        // Buildings lay out in front of the town hall (which sits at the world
+        // origin, see TownHallView) instead of starting right on top of it.
+        private const float RowStartOffset = 6f;
+
         private NodeTreeManager _nodeTree;
         private Transform _root;
         private int _spawnedCount;
@@ -38,10 +42,7 @@ namespace NationBuilder.World
 
         private void SpawnFor(PlacedBuilding placed)
         {
-            var position = new Vector3(
-                (_spawnedCount % GridColumns) * GridSpacing,
-                0f,
-                (_spawnedCount / GridColumns) * GridSpacing);
+            Vector3 position = GridPosition(_spawnedCount);
             _spawnedCount++;
 
             GameObject prefab = Resources.Load<GameObject>($"Buildings/{placed.BuildingId}");
@@ -59,6 +60,15 @@ namespace NationBuilder.World
             cube.transform.position = position + Vector3.up * 0.5f;
             cube.GetComponent<Renderer>().material.color = NationColors.ForCategory(FindCategory(buildingId));
             return cube;
+        }
+
+        private static Vector3 GridPosition(int index)
+        {
+            int col = index % GridColumns;
+            int row = index / GridColumns;
+            float x = (col - (GridColumns - 1) / 2f) * GridSpacing;
+            float z = RowStartOffset + row * GridSpacing;
+            return new Vector3(x, 0f, z);
         }
 
         private string FindCategory(string buildingId)

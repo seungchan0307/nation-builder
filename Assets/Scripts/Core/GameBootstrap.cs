@@ -63,6 +63,8 @@ namespace NationBuilder.Core
 
             LoadAndApplySave();
 
+            WorldDressing.Setup();
+            gameObject.AddComponent<TownHallView>().Init(TownHall);
             gameObject.AddComponent<BuildingWorldView>().Init(BuildingManager, NodeTree);
             gameObject.AddComponent<DevHudUI>().Init(this);
 
