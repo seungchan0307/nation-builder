@@ -4,11 +4,13 @@ using NationBuilder.Core;
 namespace NationBuilder.World
 {
     /// <summary>
-    /// Code-only placeholder for the town hall (capital) at the center of town, so
-    /// there's an obvious focal point instead of an empty scene with a handful of
-    /// building cubes scattered in it. Built from primitives - works immediately,
-    /// no Editor step or external model needed. Grows a little each town hall
-    /// level as a cheap progress cue. Swap for a real model once art is settled.
+    /// Visual for the town hall (capital) at the center of town, so there's an
+    /// obvious focal point instead of an empty scene with a handful of building
+    /// cubes scattered in it. Uses Resources/TownHall/town_hall.prefab (built from
+    /// Fantasy Town Kit pieces by BuildingPrefabGenerator, Editor-only) if it's
+    /// been generated yet; otherwise falls back to a primitive placeholder so
+    /// there's still something to look at immediately, no Editor step required.
+    /// Grows a little each town hall level as a cheap progress cue either way.
     /// </summary>
     public class TownHallView : MonoBehaviour
     {
@@ -28,6 +30,21 @@ namespace NationBuilder.World
 
         private void Build()
         {
+            GameObject prefab = Resources.Load<GameObject>("TownHall/town_hall");
+            if (prefab != null)
+            {
+                Instantiate(prefab, transform, false);
+            }
+            else
+            {
+                BuildPlaceholder();
+            }
+
+            ApplyScale();
+        }
+
+        private void BuildPlaceholder()
+        {
             CreatePart(PrimitiveType.Cube, "TownHall_Base",
                 new Vector3(0f, 0.15f, 0f), Quaternion.identity, new Vector3(3.2f, 0.3f, 3.2f), BaseColor);
 
@@ -39,8 +56,6 @@ namespace NationBuilder.World
 
             CreatePart(PrimitiveType.Cylinder, "TownHall_Beacon",
                 new Vector3(0f, 3.1f, 0f), Quaternion.identity, new Vector3(0.15f, 0.4f, 0.15f), BeaconColor);
-
-            ApplyScale();
         }
 
         private void CreatePart(PrimitiveType primitive, string name, Vector3 localPosition,
