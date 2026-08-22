@@ -34,9 +34,20 @@ namespace NationBuilder.UI
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(1f, 1f);
             rect.anchoredPosition = new Vector2(-20f, -20f);
+
+            // sizeDelta from the old anchor mode (often a full-stretch Text box, where
+            // sizeDelta is ~0 since size = parent size) is meaningless under a point
+            // anchor - there it IS the box size, so leaving it as-is can collapse the
+            // box to near-zero and clip the text. Give it a fixed, known-good size.
+            rect.sizeDelta = new Vector2(260f, 50f);
+
             _label.alignment = TextAlignmentOptions.TopRight;
             _label.color = GoldTextColor;
             _label.fontStyle = FontStyles.Bold;
+            _label.enableWordWrapping = false;
+            _label.enableAutoSizing = true;
+            _label.fontSizeMin = 14f;
+            _label.fontSizeMax = 32f;
         }
 
         /// <summary>Drops a rounded, semi-transparent panel behind this label so it reads
