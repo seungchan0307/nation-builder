@@ -6,25 +6,28 @@ using UnityEngine;
 namespace NationBuilder.EditorTools
 {
     /// <summary>
-    /// One-time helper: turns Fantasy Town Kit (Kenney, CC0) models into real prefabs
-    /// so the game has something other than placeholder cubes to instantiate:
-    ///  - SinglePieceMappings: a building that maps 1:1 onto one kit piece.
-    ///  - BuildingStacks: a building assembled from a short vertical stack of pieces
-    ///    (e.g. base / wall / roof / topper). Alignment is computed from each piece's
-    ///    actual Renderer.bounds after instantiating it - not guessed offsets - so it
-    ///    self-corrects regardless of the kit's exact unit scale.
-    ///  - TownHallTiers: three town_hall_tier{1,2,3} prefabs (small -> grand), read by
-    ///    TownHallView and swapped in as the town hall levels up.
+    /// One-time helper: turns Fantasy Town Kit (Kenney, CC0) models into real prefabs.
+    ///  - SinglePieceMappings: a building that's already a complete standalone model
+    ///    (windmill, stall, cart, fountain, ...) - maps 1:1, no assembly needed.
+    ///  - BuildingRoofs: a roof (+ optional topper prop) for buildings that are just a
+    ///    primitive wall box at runtime (see BuildingWorldView) topped with real roof
+    ///    art. NOT full building assemblies - Kenney's "wall" pieces are single flat
+    ///    panels (one side of a box), and 4 of them only close into a real box if you
+    ///    know the piece's pivot convention, which can't be verified without opening
+    ///    the piece in the Editor. Walls are primitives instead so they're guaranteed
+    ///    to look solid from every angle; only the roof needs a real model, and a roof
+    ///    cap is a single complete piece so there's no assembly ambiguity there.
     ///
-    /// All of the above land under Assets/Resources/{Buildings,TownHall}/. Run
-    /// Nation Builder > Generate Building Prefabs from the menu once (re-run any time
-    /// after editing the lists below to regenerate).
+    /// Saved to Assets/Resources/Buildings/{id}.prefab (single-piece) or
+    /// Assets/Resources/Buildings/{id}_roof.prefab (roof-only). Run Nation Builder >
+    /// Generate Building Prefabs from the menu once (re-run after editing the lists
+    /// below to regenerate). The town hall does NOT use this - see TownHallView,
+    /// which builds it entirely from primitives to match a specific reference image.
     /// </summary>
     public static class BuildingPrefabGenerator
     {
         private const string ModelsFolder = "Assets/Art/FantasyTownKit/Models";
         private const string BuildingsOutputFolder = "Assets/Resources/Buildings";
-        private const string TownHallOutputFolder = "Assets/Resources/TownHall";
         private const float StackOverlap = 0.08f; // slight negative gap so seams don't show a hairline crack
 
         private static readonly (string buildingId, string modelFileName)[] SinglePieceMappings =
@@ -42,46 +45,50 @@ namespace NationBuilder.EditorTools
             ("aqueduct", "watermill-wide.fbx"),
         };
 
-        private static readonly (string buildingId, string[] pieces)[] BuildingStacks =
+        // Roof (+ optional topper) only - BuildingWorldView builds the wall box itself
+        // and stacks this on top at runtime using the same bounds-measurement approach.
+        private static readonly (string buildingId, string[] pieces)[] BuildingRoofs =
         {
-            ("farm", new[] { "planks.fbx", "wall-wood-door.fbx", "roof-gable.fbx" }),
-            ("granary", new[] { "planks.fbx", "wall-block.fbx", "roof-gable.fbx" }),
-            ("bank", new[] { "planks.fbx", "wall-block.fbx", "roof-flat.fbx", "chimney.fbx" }),
-            ("barracks", new[] { "planks.fbx", "wall-wood-door.fbx", "roof-flat.fbx", "blade.fbx" }),
-            ("archery_range", new[] { "planks.fbx", "wall-wood.fbx", "roof-flat.fbx" }),
-            ("fortress", new[] { "planks.fbx", "wall-block.fbx", "wall-block.fbx", "pillar-stone.fbx" }),
-            ("war_camp", new[] { "planks.fbx", "fence.fbx", "banner-green.fbx" }),
-            ("quarry", new[] { "planks.fbx", "wall-block.fbx", "roof-flat.fbx", "rock-large.fbx" }),
-            ("workshop", new[] { "planks.fbx", "wall-wood-window-shutters.fbx", "roof-flat.fbx", "wheel.fbx" }),
-            ("library", new[] { "planks.fbx", "wall-wood-window-glass.fbx", "roof-gable.fbx", "lantern.fbx" }),
-            ("observatory", new[] { "planks.fbx", "wall-block.fbx", "roof-high.fbx", "lantern.fbx" }),
-            ("grand_hall", new[] { "planks.fbx", "wall-arch.fbx", "roof-high.fbx", "banner-green.fbx" }),
-        };
-
-        // Small -> grand. TownHallView swaps between these as the town hall levels up.
-        private static readonly (string tierId, string[] pieces)[] TownHallTiers =
-        {
-            ("town_hall_tier1", new[] { "planks.fbx", "wall-wood-door.fbx", "roof-gable.fbx" }),
-            ("town_hall_tier2", new[] { "planks.fbx", "wall-arch.fbx", "roof-high-gable.fbx", "banner-red.fbx" }),
-            ("town_hall_tier3", new[]
-                { "planks.fbx", "wall-arch.fbx", "wall-block.fbx", "roof-high-gable.fbx", "banner-red.fbx" }),
+            ("farm", new[] { "roof-gable.fbx" }),
+            ("granary", new[] { "roof-gable.fbx" }),
+            ("bank", new[] { "roof-flat.fbx", "chimney.fbx" }),
+            ("barracks", new[] { "roof-flat.fbx", "blade.fbx" }),
+            ("archery_range", new[] { "roof-flat.fbx" }),
+            ("fortress", new[] { "roof-high.fbx", "pillar-stone.fbx" }),
+            ("war_camp", new[] { "banner-green.fbx" }),
+            ("quarry", new[] { "roof-flat.fbx", "rock-large.fbx" }),
+            ("workshop", new[] { "roof-flat.fbx", "wheel.fbx" }),
+            ("library", new[] { "roof-gable.fbx", "lantern.fbx" }),
+            ("observatory", new[] { "roof-high.fbx", "lantern.fbx" }),
+            ("grand_hall", new[] { "roof-high.fbx", "banner-green.fbx" }),
         };
 
         [MenuItem("Nation Builder/Generate Building Prefabs (Fantasy Town Kit)")]
         public static void Generate()
         {
             EnsureFolder(BuildingsOutputFolder);
-            EnsureFolder(TownHallOutputFolder);
-            RemoveStaleAsset($"{TownHallOutputFolder}/town_hall.prefab"); // superseded by the tiered prefabs below
+            RemoveStaleAsset("Assets/Resources/TownHall/town_hall.prefab");
+            RemoveStaleAsset("Assets/Resources/TownHall/town_hall_tier1.prefab");
+            RemoveStaleAsset("Assets/Resources/TownHall/town_hall_tier2.prefab");
+            RemoveStaleAsset("Assets/Resources/TownHall/town_hall_tier3.prefab");
+
+            // These used to be full assemblies (base+wall+roof) saved as {id}.prefab
+            // directly - now BuildingWorldView builds the wall box itself and only
+            // loads {id}_roof.prefab on top. A stale {id}.prefab from an older run
+            // would otherwise take priority and silently keep showing the old
+            // single-flat-wall-panel look.
+            foreach ((string buildingId, _) in BuildingRoofs)
+            {
+                RemoveStaleAsset($"{BuildingsOutputFolder}/{buildingId}.prefab");
+            }
 
             int singlePiece = GenerateSinglePieceBuildings();
-            int stacked = GenerateStackedPrefabs(BuildingsOutputFolder, BuildingStacks);
-            int townHallTiers = GenerateStackedPrefabs(TownHallOutputFolder, TownHallTiers);
+            int roofs = GenerateRoofPrefabs();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log($"건물 프리팹 {singlePiece + stacked}개, 마을회관 단계 {townHallTiers}개 생성 완료.");
+            Debug.Log($"완성 모델 {singlePiece}개, 지붕 프리팹 {roofs}개 생성 완료.");
         }
 
         private static int GenerateSinglePieceBuildings()
@@ -100,15 +107,15 @@ namespace NationBuilder.EditorTools
             return created;
         }
 
-        private static int GenerateStackedPrefabs(string outputFolder, (string id, string[] pieces)[] definitions)
+        private static int GenerateRoofPrefabs()
         {
             int created = 0;
-            foreach ((string id, string[] pieces) in definitions)
+            foreach ((string buildingId, string[] pieces) in BuildingRoofs)
             {
-                GameObject root = BuildStackRoot(id, pieces);
+                GameObject root = BuildStackRoot($"{buildingId}_roof", pieces);
                 if (root == null) continue;
 
-                PrefabUtility.SaveAsPrefabAsset(root, $"{outputFolder}/{id}.prefab");
+                PrefabUtility.SaveAsPrefabAsset(root, $"{BuildingsOutputFolder}/{buildingId}_roof.prefab");
                 Object.DestroyImmediate(root);
                 created++;
             }
