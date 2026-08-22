@@ -39,12 +39,18 @@
 ### 3단계: 건물 3D 모델 (첫 배치)
 
 - `Assets/Art/FantasyTownKit/` — [Kenney](https://kenney.nl)의 **Fantasy Town Kit** (CC0, 저작자 표시 불필요). FBX 모델 167개 + 텍스처 1장. 대부분 벽/지붕/계단 같은 조립용 부품이라, 건물 하나하나를 완성된 모델로 조립하는 건 에디터에서 직접 손으로 해야 하는 작업임.
-- `Assets/Editor/BuildingPrefabGenerator.cs` — 키트 안에서 건물 id와 1:1로 바로 맞아떨어지는 모델 8개(풍차→제분소, 시장 좌판→시장, 수레→교역소, 성벽 조각→성벽, 분수→사당, 돌기둥→기념비, 나무→제재소/목재소)를 프리팹으로 만들어주는 에디터 전용 스크립트. 마을회관은 부품 여러 개(발판/아치벽/높은 지붕/깃발)를 세로로 쌓아서 만드는데, 위치는 손으로 정한 게 아니라 각 조각을 인스턴스화한 뒤 실제 메쉬 크기(`Renderer.bounds`)를 읽어서 자동으로 정렬함. Unity 메뉴에서 **Nation Builder > Generate Building Prefabs (Fantasy Town Kit)** 실행하면 `Assets/Resources/Buildings/`(건물 8종)와 `Assets/Resources/TownHall/town_hall.prefab`이 생성됨.
-- `Assets/Scripts/World/BuildingWorldView.cs` — 건물을 건설하면(또는 저장 파일에서 불러오면) 마을회관 앞쪽에 격자 배치로 실제 3D 오브젝트를 씬에 스폰함. `Resources/Buildings/{건물id}.prefab`이 있으면 그 모델을, 없으면 노드 카테고리 색(경제=노랑/군사=빨강/기반=회색/문화=파랑)의 임시 큐브를 대신 세워둠 — 아직 프리팹이 없는 나머지 15개 건물은 이 큐브로 자리만 채워둔 상태.
-- `Assets/Scripts/World/TownHallView.cs` — 마을 중앙(원점)에 마을회관을 세움. `Resources/TownHall/town_hall.prefab`이 있으면 그 모델을, 없으면 도형(기반+본체+지붕+등불)으로 된 임시 모델을 대신 세움. 레벨업할 때마다 살짝 커짐.
-- `Assets/Scripts/World/WorldDressing.cs` — 넓은 초록 바닥판을 깔고, 씬에 조명이 없으면 자동으로 방향광을 하나 추가함.
+- `Assets/Editor/BuildingPrefabGenerator.cs` — Fantasy Town Kit 부품으로 프리팹을 만드는 에디터 전용 스크립트. 세 가지 방식으로 **23개 건물 전부**를 커버함:
+  - **단일 모델 매칭** (11종): 풍차→제분소, 시장 좌판→시장, 수레→교역소, 성벽 조각→성벽, 분수→사당, 돌기둥→기념비, 나무→제재소/목재소, 도로→도로, 계단→원형극장, 수차→수도교.
+  - **부품 조립** (12종): farm/granary/bank/barracks/archery_range/fortress/war_camp/quarry/workshop/library/observatory/grand_hall — 발판+벽+지붕(+토퍼)을 세로로 쌓음.
+  - **마을회관 3단계**: `town_hall_tier1`(초라한 목조 회관, Lv1~2) → `tier2`(아치형 회관, Lv3~5) → `tier3`(웅장한 회관, Lv6+).
 
-즉 지금은 8개 건물 + 마을회관은 실제 모델(프리팹 생성 메뉴를 실행했다면), 나머지 15개 건물은 색깔 큐브다. 나머지 건물은 벽/지붕 부품을 에디터에서 직접 조립해야 해서, 다음에 Unity 열려있을 때 같이 진행하는 게 좋음.
+  조립 위치는 손으로 정한 게 아니라, 각 조각을 인스턴스화한 뒤 실제 메쉬 크기(`Renderer.bounds`)를 읽어서 자동으로 정렬함 — 부품 크기를 몰라도 뜨거나 겹치지 않음. Unity 메뉴에서 **Nation Builder > Generate Building Prefabs (Fantasy Town Kit)** 실행하면 `Assets/Resources/Buildings/`와 `Assets/Resources/TownHall/`에 전부 생성됨.
+- `Assets/Scripts/World/BuildingWorldView.cs` — 건물을 건설하면(또는 저장 파일에서 불러오면) 마을회관 앞쪽에 격자 배치로 실제 3D 오브젝트를 씬에 스폰함. 프리팹이 있으면 그 모델을, 없으면 노드 카테고리 색(경제=노랑/군사=빨강/기반=회색/문화=파랑)의 임시 큐브를 대신 세워둠.
+- `Assets/Scripts/World/TownHallView.cs` — 마을 중앙(원점)에 마을회관을 세움. 마을회관 레벨에 따라 `town_hall_tier{1,2,3}` 프리팹을 갈아끼워서 외관 자체가 바뀜(프리팹 없으면 도형 임시 모델). 레벨업마다 빛 번쩍임 + 살짝 부풀어오르는 이펙트 재생.
+- `Assets/Scripts/World/WorldDressing.cs` — 넓은 초록 바닥판을 깔고, 씬에 조명이 없으면 자동으로 방향광을 추가하고, 메인 카메라에 마우스 휠 확대/축소(`CameraZoomController`)를 붙임.
+- `Assets/Scripts/World/CameraZoomController.cs` — 마우스 휠로 카메라를 자신의 정면 방향으로 이동시켜 확대/축소(FOV를 바꾸지 않아서 아이소메트릭 각도가 일그러지지 않음). 높이 4~26 사이로 제한.
+
+프리팹 생성 메뉴를 실행하면 23개 건물 + 마을회관 3단계가 전부 실제 모델로 뜬다. 실행 안 했으면 여전히 색깔 큐브/도형으로 대체됨(안전한 폴백).
 
 ## Unity 에디터에서 확인하는 방법
 
@@ -57,7 +63,6 @@
 
 ## 다음 단계
 
-- [ ] 나머지 15개 건물도 Fantasy Town Kit 부품(벽/지붕/계단)으로 조립해서 프리팹 만들기 — 에디터에서 직접 배치해야 하는 작업
 - [ ] `DevHudUI`를 Canvas 기반 정식 UI로 교체
 - [ ] 차별화 훅 확정 후 마일스톤 선택지 재설계 (`private-notes/DESIGN-PRIVATE.md` 참고)
 - [ ] 밸런스 수치 조정 (`node-tree.txt`, `buildings.txt`)

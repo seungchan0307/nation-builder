@@ -13,6 +13,7 @@ namespace NationBuilder.World
         {
             CreateGround();
             EnsureLight();
+            SetupCameraZoom();
         }
 
         private static void CreateGround()
@@ -34,6 +35,16 @@ namespace NationBuilder.World
             light.type = LightType.Directional;
             light.intensity = 1.1f;
             lightObj.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+        }
+
+        private static void SetupCameraZoom()
+        {
+            Camera cam = Camera.main;
+            if (cam == null) return;
+            if (cam.GetComponent<CameraZoomController>() == null)
+            {
+                cam.gameObject.AddComponent<CameraZoomController>();
+            }
         }
     }
 }
