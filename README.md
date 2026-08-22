@@ -26,8 +26,8 @@
 
 `Assets/Scripts/Core/GameBootstrap.cs`가 게임 시작 시 자동으로 `SystemsRoot`라는 오브젝트를 만들고 아래 시스템들을 전부 붙여준다. **씬에 손으로 추가할 것 없음.**
 
-- `NodeTreeManager` — `Assets/Resources/node-tree.txt`에서 읽어오는 공유 노드 트리. 포인트로 노드를 해금하면 해당 건물이 도감에 등록됨.
-- `BuildingDex` — `Assets/Resources/buildings.txt`에서 읽어오는 전체 건물 목록 + 그중 해금(등록)된 것들.
+- `NodeTreeManager` — `Assets/Resources/node-tree.txt`에서 읽어오는 공유 노드 트리. 포인트로 노드를 해금하면 해당 건물이 도감에 등록됨. 노드는 경제/군사/기반/문화 4개 구역(+ 합류 지점인 대회당)으로 나뉘어 있고, 어느 구역에 포인트를 많이 썼는지로 "나라 성향"이 계산됨 (`NodeTreeManager.LeadingCategory()`).
+- `BuildingDex` — `Assets/Resources/buildings.txt`에서 읽어오는 전체 건물 목록(23종) + 그중 해금(등록)된 것들.
 - `BuildingManager` — 건물 건설/업그레이드. 완료 시각을 절대 UTC 시각으로 저장해서, 앱이 꺼져있던 동안 지난 시간도 자동으로 반영됨.
 - `TownHallManager` — 마을회관 레벨. 업그레이드 완료 시 노드 트리 포인트 +1 지급 + 마일스톤 선택 이벤트 발동.
 - `MilestoneManager` — 마을회관 레벨업마다 뜨는 문명식 선택지 3개 (경제/건설/포인트 특화 — 프로토타입용 임시 옵션, 실제 차별화 훅 정해지면 교체 예정).

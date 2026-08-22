@@ -10,5 +10,6 @@ namespace NationBuilder.Core
         public int PointCost;
         public List<string> PrerequisiteIds = new();
         public string UnlocksBuildingId;
+        public string Category;
     }
 }

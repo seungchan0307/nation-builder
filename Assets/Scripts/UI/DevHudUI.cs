@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using NationBuilder.Core;
 
@@ -43,40 +44,68 @@ namespace NationBuilder.UI
             GUI.Box(rect, $"오프라인 동안 골드 {Mathf.FloorToInt((float)_game.OfflineGoldEarned)} 모았습니다");
         }
 
+        private static readonly string[] CategoryOrder = { "경제", "군사", "기반", "문화", "공용" };
+
+        private Vector2 _nodeTreeScroll;
+
         private void DrawNodeTreePanel()
         {
-            GUILayout.BeginArea(new Rect(10, 10, 260, 400), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(10, 10, 260, 480), GUI.skin.box);
             GUILayout.Label($"노드 트리 - 포인트: {_game.NodeTree.Points}");
 
-            foreach (TreeNode node in _game.NodeTree.AllNodes)
-            {
-                bool unlocked = _game.NodeTree.IsUnlocked(node.Id);
-                GUILayout.BeginHorizontal();
-                GUILayout.Label($"{node.DisplayName} ({node.PointCost}P)", GUILayout.Width(150));
+            string leading = _game.NodeTree.LeadingCategory();
+            GUILayout.Label(leading == null ? "나라 성향: 아직 없음" : $"나라 성향: {leading} 중심");
 
-                if (unlocked)
+            _nodeTreeScroll = GUILayout.BeginScrollView(_nodeTreeScroll, GUILayout.Height(400));
+
+            foreach (string category in CategoryOrder)
+            {
+                var nodesInCategory = _game.NodeTree.AllNodes.Where(n => n.Category == category).ToList();
+                if (nodesInCategory.Count == 0) continue;
+
+                _game.NodeTree.CategoryInvestment.TryGetValue(category, out int invested);
+                GUILayout.Label($"-- {category} ({invested}P 투자) --");
+
+                foreach (TreeNode node in nodesInCategory)
                 {
-                    GUILayout.Label("해금됨");
+                    DrawNodeRow(node);
                 }
-                else
-                {
-                    GUI.enabled = _game.NodeTree.CanUnlock(node);
-                    if (GUILayout.Button("해금"))
-                    {
-                        _game.NodeTree.TryUnlock(node.Id);
-                    }
-                    GUI.enabled = true;
-                }
-                GUILayout.EndHorizontal();
             }
 
+            GUILayout.EndScrollView();
             GUILayout.EndArea();
         }
 
+        private void DrawNodeRow(TreeNode node)
+        {
+            bool unlocked = _game.NodeTree.IsUnlocked(node.Id);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"{node.DisplayName} ({node.PointCost}P)", GUILayout.Width(150));
+
+            if (unlocked)
+            {
+                GUILayout.Label("해금됨");
+            }
+            else
+            {
+                GUI.enabled = _game.NodeTree.CanUnlock(node);
+                if (GUILayout.Button("해금"))
+                {
+                    _game.NodeTree.TryUnlock(node.Id);
+                }
+                GUI.enabled = true;
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private Vector2 _buildingDexScroll;
+
         private void DrawBuildingDexPanel()
         {
-            GUILayout.BeginArea(new Rect(280, 10, 300, 400), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(280, 10, 300, 480), GUI.skin.box);
             GUILayout.Label("건물 도감");
+
+            _buildingDexScroll = GUILayout.BeginScrollView(_buildingDexScroll, GUILayout.Height(430));
 
             foreach (string buildingId in _game.BuildingDex.RegisteredIds)
             {
@@ -114,13 +143,14 @@ namespace NationBuilder.UI
                 GUILayout.Label("노드 트리에서 건물을 해금하세요.");
             }
 
+            GUILayout.EndScrollView();
             GUILayout.EndArea();
         }
 
         private void DrawTownHallPanel()
         {
             TownHallManager townHall = _game.TownHall;
-            GUILayout.BeginArea(new Rect(10, 420, 300, 100), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(590, 10, 260, 100), GUI.skin.box);
             GUILayout.Label($"마을회관 Lv.{townHall.Level}");
 
             if (townHall.IsUpgrading)

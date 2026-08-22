@@ -1,10 +1,26 @@
 # 공유 노드 트리 (프로토타입용 임시 데이터, 밸런스 미확정)
-# id,이름,포인트비용,선행조건(|로 구분, 없으면 -),해금건물id
-farm,농장,1,-,farm
-lumber_mill,제재소,1,-,lumber_mill
-mill,제분소,2,farm,mill
-barracks,병영,2,farm,barracks
-sawpit,목재소,2,lumber_mill,sawpit
-walls,성벽,3,farm|lumber_mill,walls
-market,시장,3,mill|barracks,market
-grand_hall,대회당,4,walls|market,grand_hall
+# id,이름,포인트비용,선행조건(|로 구분, 없으면 -),해금건물id,분류
+# 분류: 경제 / 군사 / 기반 / 문화 / 공용(분기 합류 지점)
+farm,농장,1,-,farm,경제
+mill,제분소,2,farm,mill,경제
+granary,곡창,2,farm,granary,경제
+market,시장,3,mill|granary,market,경제
+trade_post,교역소,4,market,trade_post,경제
+bank,은행,5,trade_post,bank,경제
+barracks,병영,1,-,barracks,군사
+archery_range,궁술소,2,barracks,archery_range,군사
+walls,성벽,2,barracks,walls,군사
+fortress,요새,4,archery_range|walls,fortress,군사
+war_camp,전쟁 진영,5,fortress,war_camp,군사
+lumber_mill,제재소,1,-,lumber_mill,기반
+sawpit,목재소,2,lumber_mill,sawpit,기반
+quarry,채석장,2,lumber_mill,quarry,기반
+road,도로,3,sawpit,road,기반
+workshop,공방,4,sawpit|quarry,workshop,기반
+aqueduct,수도교,5,workshop|road,aqueduct,기반
+shrine,사당,1,-,shrine,문화
+library,서고,2,shrine,library,문화
+monument,기념비,3,library,monument,문화
+amphitheater,원형극장,4,monument,amphitheater,문화
+observatory,천문대,5,amphitheater,observatory,문화
+grand_hall,대회당,6,market|fortress,grand_hall,공용

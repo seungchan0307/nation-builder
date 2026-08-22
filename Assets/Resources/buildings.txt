@@ -1,10 +1,25 @@
 # 건물 도감 (프로토타입용 임시 데이터, 밸런스 미확정)
 # id,이름,건설비용(골드),건설시간(초)
 farm,농장,50,10
+barracks,병영,50,10
 lumber_mill,제재소,50,10
-mill,제분소,120,20
-barracks,병영,150,25
-sawpit,목재소,120,20
-walls,성벽,200,30
-market,시장,250,35
-grand_hall,대회당,500,60
+shrine,사당,50,10
+mill,제분소,90,18
+granary,곡창,90,18
+archery_range,궁술소,90,18
+walls,성벽,90,18
+sawpit,목재소,90,18
+quarry,채석장,90,18
+library,서고,90,18
+market,시장,160,28
+road,도로,160,28
+monument,기념비,160,28
+trade_post,교역소,260,40
+fortress,요새,260,40
+workshop,공방,260,40
+amphitheater,원형극장,260,40
+bank,은행,400,55
+war_camp,전쟁 진영,400,55
+aqueduct,수도교,400,55
+observatory,천문대,400,55
+grand_hall,대회당,600,75
