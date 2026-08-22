@@ -36,17 +36,31 @@
 
 밸런스 수치(`node-tree.txt`, `buildings.txt`의 포인트/골드/시간 값)는 전부 프로토타입용 임시값이다. 확정 수치는 `private-notes/DESIGN-PRIVATE.md`에서 관리.
 
+### 3단계: 건물 3D 모델 (첫 배치)
+
+- `Assets/Art/FantasyTownKit/` — [Kenney](https://kenney.nl)의 **Fantasy Town Kit** (CC0, 저작자 표시 불필요). FBX 모델 167개 + 텍스처 1장. 대부분 벽/지붕/계단 같은 조립용 부품이라, 건물 하나하나를 완성된 모델로 조립하는 건 에디터에서 직접 손으로 해야 하는 작업임.
+- `Assets/Editor/BuildingPrefabGenerator.cs` — 키트 안에서 건물 id와 1:1로 바로 맞아떨어지는 모델 8개(풍차→제분소, 시장 좌판→시장, 수레→교역소, 성벽 조각→성벽, 분수→사당, 돌기둥→기념비, 나무→제재소/목재소)를 프리팹으로 만들어주는 에디터 전용 스크립트. Unity 메뉴에서 **Nation Builder > Generate Building Prefabs (Fantasy Town Kit)** 실행하면 `Assets/Resources/Buildings/`에 프리팹이 생성됨.
+- `Assets/Scripts/World/BuildingWorldView.cs` — 건물을 건설하면(또는 저장 파일에서 불러오면) 격자 배치로 실제 3D 오브젝트를 씬에 스폰함. `Resources/Buildings/{건물id}.prefab`이 있으면 그 모델을, 없으면 노드 카테고리 색(경제=노랑/군사=빨강/기반=회색/문화=파랑)의 임시 큐브를 대신 세워둠 — 아직 프리팹이 없는 나머지 15개 건물은 이 큐브로 자리만 채워둔 상태.
+
+즉 지금은 8개 건물만 실제 모델, 나머지는 색깔 큐브다. 나머지 건물은 벽/지붕 부품을 에디터에서 직접 조립해야 해서, 다음에 Unity 열려있을 때 같이 진행하는 게 좋음.
+
 ## Unity 에디터에서 확인하는 방법
 
 1. Unity Hub에서 이 폴더(`게임개발2`)를 프로젝트로 열기. (`ProjectSettings/ProjectVersion.txt`에 Unity 6.3 LTS(6000.3.22f1)로 지정해뒀지만, 설치된 다른 버전으로 열어도 무방함 — Unity가 알아서 업그레이드를 제안함)
 2. 씬에 아직 `GameManager`(+ `ResourceManager`), `Text (TMP)`(+ `GoldDisplay`)가 없다면 만들어준다 (1단계 참고 — 이미 되어 있다면 생략).
-3. Play 버튼을 눌러본다. 화면 왼쪽 위에 노드 트리 패널, 건물 도감 패널, 마을회관 패널이 뜬다.
-4. 노드를 해금해보고(포인트가 부족하면 마을회관을 업그레이드해서 포인트를 얻는다), 도감에 등록된 건물을 건설/업그레이드해본다.
-5. 씬 저장 없이 Play를 멈췄다가 다시 켜도(또는 에디터를 완전히 재시작해도) 진행 상황이 `nation_save.json`에서 복원된다.
+3. 새로 추가된 `Fantasy Town Kit` 임포트가 끝날 때까지 기다린 다음(에디터 하단 로딩 아이콘), 메뉴에서 **Nation Builder > Generate Building Prefabs (Fantasy Town Kit)** 를 한 번 실행한다 (3단계 참고).
+4. Play 버튼을 눌러본다. 화면 왼쪽 위에 노드 트리 패널, 건물 도감 패널, 마을회관 패널이 뜬다.
+5. 노드를 해금해보고(포인트가 부족하면 마을회관을 업그레이드해서 포인트를 얻는다), 도감에 등록된 건물을 건설/업그레이드해본다 — 씬 가운데에 건물이 격자로 세워지는지 확인.
+6. 씬 저장 없이 Play를 멈췄다가 다시 켜도(또는 에디터를 완전히 재시작해도) 진행 상황이 `nation_save.json`에서 복원된다.
 
 ## 다음 단계
 
-- [ ] 실제 아트(건물 스프라이트/모델) 적용, `DevHudUI`를 Canvas 기반 정식 UI로 교체
+- [ ] 나머지 15개 건물도 Fantasy Town Kit 부품(벽/지붕/계단)으로 조립해서 프리팹 만들기 — 에디터에서 직접 배치해야 하는 작업
+- [ ] `DevHudUI`를 Canvas 기반 정식 UI로 교체
 - [ ] 차별화 훅 확정 후 마일스톤 선택지 재설계 (`private-notes/DESIGN-PRIVATE.md` 참고)
 - [ ] 밸런스 수치 조정 (`node-tree.txt`, `buildings.txt`)
 - [ ] 전투 시스템
+
+## 사용한 무료 에셋
+
+- [Fantasy Town Kit](https://kenney.nl/assets/fantasy-town-kit) by Kenney — CC0 (저작자 표시 의무 없음, 그래도 감사한 마음에 남겨둠). 라이선스 전문: `Assets/Art/FantasyTownKit/LICENSE.txt`

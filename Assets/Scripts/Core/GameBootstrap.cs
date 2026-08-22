@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using NationBuilder.UI;
+using NationBuilder.World;
 
 namespace NationBuilder.Core
 {
@@ -61,6 +63,7 @@ namespace NationBuilder.Core
 
             LoadAndApplySave();
 
+            gameObject.AddComponent<BuildingWorldView>().Init(BuildingManager, NodeTree);
             gameObject.AddComponent<DevHudUI>().Init(this);
 
             InvokeRepeating(nameof(SaveNow), SaveIntervalSeconds, SaveIntervalSeconds);
