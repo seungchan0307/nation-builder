@@ -1,6 +1,7 @@
 using NationBuilder.Core;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace NationBuilder.UI
 {
@@ -11,12 +12,16 @@ namespace NationBuilder.UI
     [RequireComponent(typeof(TextMeshProUGUI))]
     public class GoldDisplay : MonoBehaviour
     {
+        private static readonly Color GoldTextColor = new(1f, 0.85f, 0.4f);
+        private static readonly Color BadgeColor = new(0.09f, 0.10f, 0.14f, 0.85f);
+
         private TextMeshProUGUI _label;
 
         private void Awake()
         {
             _label = GetComponent<TextMeshProUGUI>();
             PositionTopRight();
+            AddBackgroundBadge();
         }
 
         /// <summary>Pins this label to the screen's top-right corner regardless of how it
@@ -30,6 +35,34 @@ namespace NationBuilder.UI
             rect.pivot = new Vector2(1f, 1f);
             rect.anchoredPosition = new Vector2(-20f, -20f);
             _label.alignment = TextAlignmentOptions.TopRight;
+            _label.color = GoldTextColor;
+            _label.fontStyle = FontStyles.Bold;
+        }
+
+        /// <summary>Drops a rounded, semi-transparent panel behind this label so it reads
+        /// as a HUD "chip" instead of floating bare text over the 3D scene.</summary>
+        private void AddBackgroundBadge()
+        {
+            if (transform is not RectTransform textRect) return;
+
+            var badge = new GameObject("GoldBadgeBackground", typeof(RectTransform), typeof(Image));
+            var badgeRect = (RectTransform)badge.transform;
+            badgeRect.SetParent(textRect.parent, false);
+            badgeRect.SetSiblingIndex(textRect.GetSiblingIndex()); // sits right before the text -> renders behind it
+
+            const float padX = 18f;
+            const float padY = 12f;
+            badgeRect.anchorMin = textRect.anchorMin;
+            badgeRect.anchorMax = textRect.anchorMax;
+            badgeRect.pivot = textRect.pivot;
+            badgeRect.anchoredPosition = textRect.anchoredPosition + new Vector2(padX, padY);
+            badgeRect.sizeDelta = textRect.sizeDelta + new Vector2(padX * 2f, padY * 2f);
+
+            var image = badge.GetComponent<Image>();
+            image.sprite = RoundedTexture.BuildSprite(48, 18);
+            image.type = Image.Type.Sliced;
+            image.color = BadgeColor;
+            image.raycastTarget = false;
         }
 
         private void OnEnable()

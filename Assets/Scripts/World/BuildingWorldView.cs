@@ -57,7 +57,7 @@ namespace NationBuilder.World
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.SetParent(_root, false);
             cube.transform.position = position + Vector3.up * 0.5f;
-            cube.GetComponent<Renderer>().material.color = CategoryColor(FindCategory(buildingId));
+            cube.GetComponent<Renderer>().material.color = NationColors.ForCategory(FindCategory(buildingId));
             return cube;
         }
 
@@ -69,14 +69,5 @@ namespace NationBuilder.World
             }
             return null;
         }
-
-        private static Color CategoryColor(string category) => category switch
-        {
-            "경제" => new Color(0.95f, 0.85f, 0.3f),
-            "군사" => new Color(0.8f, 0.25f, 0.25f),
-            "기반" => new Color(0.6f, 0.6f, 0.65f),
-            "문화" => new Color(0.35f, 0.55f, 0.9f),
-            _ => Color.white,
-        };
     }
 }
