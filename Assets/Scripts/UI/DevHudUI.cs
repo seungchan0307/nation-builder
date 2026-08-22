@@ -10,11 +10,24 @@ namespace NationBuilder.UI
     /// node tree investment, building dex/build/upgrade, town hall upgrade, and
     /// the milestone choice popup. Deliberately unstyled - swap for real
     /// Canvas/TextMeshPro UI once the art direction is settled.
+    ///
+    /// Node tree / building dex are togglable panels (buttons top-left open them,
+    /// X closes them) so the 3D town underneath is visible when they're closed.
     /// </summary>
     public class DevHudUI : MonoBehaviour
     {
+        private static readonly string[] CategoryOrder = { "경제", "군사", "기반", "문화", "공용" };
+        private static readonly string[] FilterOptions = { "전체", "경제", "군사", "기반", "문화", "공용" };
+
         private GameBootstrap _game;
         private float _offlineBannerHideAt;
+
+        private bool _showNodeTree;
+        private bool _showBuildingDex;
+        private int _nodeFilterIndex;
+        private int _buildingFilterIndex;
+        private Vector2 _nodeTreeScroll;
+        private Vector2 _buildingDexScroll;
 
         public void Init(GameBootstrap game)
         {
@@ -30,9 +43,10 @@ namespace NationBuilder.UI
             if (_game == null) return;
 
             DrawOfflineBanner();
-            DrawNodeTreePanel();
-            DrawBuildingDexPanel();
+            DrawMenuButtons();
             DrawTownHallPanel();
+            if (_showNodeTree) DrawNodeTreePanel();
+            if (_showBuildingDex) DrawBuildingDexPanel();
             DrawMilestonePopup();
         }
 
@@ -44,22 +58,64 @@ namespace NationBuilder.UI
             GUI.Box(rect, $"오프라인 동안 골드 {Mathf.FloorToInt((float)_game.OfflineGoldEarned)} 모았습니다");
         }
 
-        private static readonly string[] CategoryOrder = { "경제", "군사", "기반", "문화", "공용" };
+        private void DrawMenuButtons()
+        {
+            GUILayout.BeginArea(new Rect(10, 10, 300, 30));
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(_showNodeTree ? "노드 트리 ▲" : "노드 트리 ▼", GUILayout.Width(140)))
+            {
+                _showNodeTree = !_showNodeTree;
+            }
+            if (GUILayout.Button(_showBuildingDex ? "건물 도감 ▲" : "건물 도감 ▼", GUILayout.Width(140)))
+            {
+                _showBuildingDex = !_showBuildingDex;
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.EndArea();
+        }
 
-        private Vector2 _nodeTreeScroll;
+        private void DrawPanelHeader(string title, Action onClose)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(title, GUILayout.ExpandWidth(true));
+            if (GUILayout.Button("X", GUILayout.Width(24)))
+            {
+                onClose();
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawFilterRow(ref int selectedIndex)
+        {
+            GUILayout.BeginHorizontal();
+            for (int i = 0; i < FilterOptions.Length; i++)
+            {
+                string label = i == selectedIndex ? $"[{FilterOptions[i]}]" : FilterOptions[i];
+                if (GUILayout.Button(label))
+                {
+                    selectedIndex = i;
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
 
         private void DrawNodeTreePanel()
         {
-            GUILayout.BeginArea(new Rect(10, 10, 260, 480), GUI.skin.box);
-            GUILayout.Label($"노드 트리 - 포인트: {_game.NodeTree.Points}");
+            GUILayout.BeginArea(new Rect(10, 50, 280, 470), GUI.skin.box);
+            DrawPanelHeader($"노드 트리 - 포인트: {_game.NodeTree.Points}", () => _showNodeTree = false);
 
             string leading = _game.NodeTree.LeadingCategory();
             GUILayout.Label(leading == null ? "나라 성향: 아직 없음" : $"나라 성향: {leading} 중심");
 
-            _nodeTreeScroll = GUILayout.BeginScrollView(_nodeTreeScroll, GUILayout.Height(400));
+            DrawFilterRow(ref _nodeFilterIndex);
+            string filter = FilterOptions[_nodeFilterIndex];
+
+            _nodeTreeScroll = GUILayout.BeginScrollView(_nodeTreeScroll, GUILayout.Height(360));
 
             foreach (string category in CategoryOrder)
             {
+                if (filter != "전체" && filter != category) continue;
+
                 var nodesInCategory = _game.NodeTree.AllNodes.Where(n => n.Category == category).ToList();
                 if (nodesInCategory.Count == 0) continue;
 
@@ -98,17 +154,20 @@ namespace NationBuilder.UI
             GUILayout.EndHorizontal();
         }
 
-        private Vector2 _buildingDexScroll;
-
         private void DrawBuildingDexPanel()
         {
-            GUILayout.BeginArea(new Rect(280, 10, 300, 480), GUI.skin.box);
-            GUILayout.Label("건물 도감");
+            GUILayout.BeginArea(new Rect(300, 50, 320, 470), GUI.skin.box);
+            DrawPanelHeader("건물 도감", () => _showBuildingDex = false);
 
-            _buildingDexScroll = GUILayout.BeginScrollView(_buildingDexScroll, GUILayout.Height(430));
+            DrawFilterRow(ref _buildingFilterIndex);
+            string filter = FilterOptions[_buildingFilterIndex];
+
+            _buildingDexScroll = GUILayout.BeginScrollView(_buildingDexScroll, GUILayout.Height(400));
 
             foreach (string buildingId in _game.BuildingDex.RegisteredIds)
             {
+                if (filter != "전체" && filter != CategoryOfBuilding(buildingId)) continue;
+
                 BuildingDefinition def = _game.BuildingDex.AllBuildings[buildingId];
                 PlacedBuilding placed = _game.BuildingManager.Find(buildingId);
 
@@ -147,10 +206,19 @@ namespace NationBuilder.UI
             GUILayout.EndArea();
         }
 
+        private string CategoryOfBuilding(string buildingId)
+        {
+            foreach (TreeNode node in _game.NodeTree.AllNodes)
+            {
+                if (node.UnlocksBuildingId == buildingId) return node.Category;
+            }
+            return null;
+        }
+
         private void DrawTownHallPanel()
         {
             TownHallManager townHall = _game.TownHall;
-            GUILayout.BeginArea(new Rect(590, 10, 260, 100), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(Screen.width - 270, 50, 260, 100), GUI.skin.box);
             GUILayout.Label($"마을회관 Lv.{townHall.Level}");
 
             if (townHall.IsUpgrading)

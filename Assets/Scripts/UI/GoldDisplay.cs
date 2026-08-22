@@ -16,6 +16,20 @@ namespace NationBuilder.UI
         private void Awake()
         {
             _label = GetComponent<TextMeshProUGUI>();
+            PositionTopRight();
+        }
+
+        /// <summary>Pins this label to the screen's top-right corner regardless of how it
+        /// was placed in the scene, so it doesn't need to be moved by hand in the Editor.</summary>
+        private void PositionTopRight()
+        {
+            if (transform is not RectTransform rect) return;
+
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-20f, -20f);
+            _label.alignment = TextAlignmentOptions.TopRight;
         }
 
         private void OnEnable()
